@@ -5,4 +5,4 @@ class TrackMentor(str, Enum):
     jee = "Competitive - JEE/JEE Advanced"
     neet = "Competitive - NEET"
     cuet = "Competitive - CUET"
-    abroad = Abroad
+    abroad = "Abroad"
