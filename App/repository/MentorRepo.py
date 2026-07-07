@@ -72,3 +72,44 @@ class MentorRepo():
                 .execute()
             ).data
         )
+    
+    @staticmethod
+    def getByTrack(track: str):
+        return (
+            supabase
+            .table("Mentors")
+            .select("*")
+            .eq("track", track)
+            .execute()
+        ).data
+    
+    @staticmethod
+    def getByAvailability(availability: str):
+        return (
+            supabase
+            .table("Mentors")
+            .select("*")
+            .eq("availability", availability)
+            .execute()
+        ).data
+    
+    @staticmethod
+    def getByTrackAndAvailability(track: str, availability: str):
+        return (
+            supabase
+            .table("Mentors")
+            .select("*")
+            .eq("track", track)
+            .eq("availability", availability)
+            .execute()
+        ).data
+    
+    @staticmethod
+    def getByEmail(email: str):
+        return (
+            supabase
+            .table("Mentors")
+            .select("*")
+            .eq("email", email)
+            .execute()
+        ).data
