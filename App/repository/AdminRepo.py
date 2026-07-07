@@ -7,7 +7,7 @@ class AdminRepo():
         response = (
             supabase
             .table("Admins")
-            .select("*")
+            .select("username, created_at, role, discord_id, reddit_id, email")
             .execute()
         )
         return response.data
@@ -26,8 +26,9 @@ class AdminRepo():
         return (
             supabase
             .table("Admins")
-            .select("*")
+            .select("username, created_at, role, discord_id, reddit_id, email")
             .eq("username", username)
+            .single()
             .execute()
         ).data
     
@@ -63,5 +64,18 @@ class AdminRepo():
             .execute()
         )
     
-    
+    @staticmethod
+    def exists(username: str) -> bool:
+        data= (
+            supabase
+            .table("Admins")
+            .select("username")
+            .eq("username", username)
+            .execute
+        )
+
+        if data:
+            return True
+        else:
+            return False
     
