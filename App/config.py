@@ -6,9 +6,9 @@ load_dotenv()
 class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_KEY: str
-    secret_key: str
-    algo: str
-    expireTime: str
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

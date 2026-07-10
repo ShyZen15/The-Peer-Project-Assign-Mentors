@@ -28,7 +28,6 @@ class AdminRepo():
             .table("Admins")
             .select("username, created_at, role, discord_id, reddit_id, email")
             .eq("username", username)
-            .single()
             .execute()
         ).data
     
@@ -78,4 +77,15 @@ class AdminRepo():
             return True
         else:
             return False
+        
+    @staticmethod
+    def getDataByUsernames(username: str):
+        return (
+            supabase
+            .table("Admins")
+            .select("*")
+            .eq("username", username)
+            .single()
+            .execute()
+        ).data
     

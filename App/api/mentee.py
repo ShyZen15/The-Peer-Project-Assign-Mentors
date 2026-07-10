@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from postgrest.exceptions import APIError
 from App.schemas.mentees import MenteesRegistration
+from App.auth.dependencies import get_current_admin
 from App.repository.MenteeRepo import MenteeRepo
 
 router = APIRouter(
@@ -32,9 +33,14 @@ async def register_mentee(
             status_code=500,
             detail="Database error."
         )
+    
+@router.get("/count")
+async def getTotal(current_admin = Depends(get_current_admin)):
+    return MenteeRepo.getCount()
 
-@router.get("/")
-async def get_mentee_all():
+
+@router.get("/menteesAll")
+async def get_mentee_all(current_admin = Depends(get_current_admin)):
     result = MenteeRepo.getAll()
     return {
         "success": True,
@@ -42,7 +48,7 @@ async def get_mentee_all():
     }
 
 @router.get("/{discord_id}")
-async def get_mentee_id(discord_id: str):
+async def get_mentee_id(discord_id: str, current_admin = Depends(get_current_admin)):
     result = MenteeRepo.getDataByID(discord_id)
 
     if not result:
@@ -55,50 +61,37 @@ async def get_mentee_id(discord_id: str):
         "mentor": result
     }
 
-@router.put("/{discord_id}")
-async def update_mentee_more(discord_id: str, data:dict):
-
-    existing = MenteeRepo.getDataByID(discord_id)
-
-    if not existing:
-        raise HTTPException(
-            status_code=404,
-            detail="Mentor not Found."
-        )
-
-    try:
-        result = MenteeRepo.updateData(discord_id, data)
-        return{
-            "success": True,
-            "Mentee": result.data
-        }
-    except APIError as e:
-        if "discord_id" in str(e):
-            raise HTTPException(
-                status_code=409, 
-                detail="Discord ID already exists"
-            )
-        raise HTTPException(
-            status_code=500,
-            detail="Database error."
-        )
 
 @router.put("/{discord_id}")
-async def update_mentee_one_field(discord_id: str, data, field:str):
+async def update_mentee_one_field(discord_id: str, data, field:str, current_admin = Depends(get_current_admin)):
     result = MenteeRepo.updateDataField(discord_id, data, field)
     return{
         "success": True,
         "Mentee": result.data
     }
 
-@router.delete("/{discord_id}")
-async def delete_mentee_id(discord_id: str):
+@router.patch("/{discord_id}/verify")
+async def verify_mentor(
+    discord_id: str,
+    is_verified: bool,
+    current_admin = Depends(get_current_admin)
+):
+    result = MenteeRepo.updateVerificationStatus(
+        discord_id,
+        is_verified
+    )
+
+    return {
+        "success": True,
+        "message": f"Verification status updated to {is_verified}",
+        "mentor": result.data
+    }
+
+@router.delete("/{discord_id}/delete")
+async def delete_mentee_id(discord_id: str, current_admin = Depends(get_current_admin)):
     result = MenteeRepo.deleteData(discord_id)
     return{
         "success": True,
         "Mentee": result.data
     }
 
-@router.get("/")
-async def getTotal():
-    return MenteeRepo.getCount()

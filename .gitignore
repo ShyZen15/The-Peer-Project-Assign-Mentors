@@ -6,3 +6,5 @@ App/__pycache__
 App/Schemas/__pycache__
 App/repository/__pycache__
 App/api/__pycache__
+.vscode
+App/services/__pycache__

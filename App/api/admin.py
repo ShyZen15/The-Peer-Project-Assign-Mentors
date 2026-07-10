@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from App.auth.dependencies import get_current_admin
 from App.schemas.AdminLogin import AdminLogin
 from App.schemas.AdminCreate import AdminResponse
 from App.services.auth_service import AuthService
@@ -11,20 +13,42 @@ router = APIRouter(
     tags=["admin"]
 )
 
+#Development only
 @router.post("/login")
 async def adminLoginRequest(
-    credentials: AdminLogin
+    form_data: OAuth2PasswordRequestForm = Depends()
 ):
     try:
+        credentials = AdminLogin(
+            username=form_data.username,
+            password=form_data.password
+        )
+
         return AuthService.login(credentials)
+
     except APIError:
         raise HTTPException(
-        status_code=500,
-        detail="Database error."
-    )
+            status_code=500,
+            detail="Database error."
+        )
+    
+# @router.post("/login")
+# async def adminLoginRequest(
+#     credentials: AdminLogin
+# ):
+#     try:
+#         return AuthService.login(credentials)
+
+#     except APIError:
+#         raise HTTPException(
+#             status_code=500,
+#             detail="Database error."
+#         )
 
 @router.get("/")
-async def getAllAdmins():
+async def getAllAdmins(
+    current_admin = Depends(get_current_admin)
+):
     result = AdminRepo.getAll()
     return{
         "success": True,
@@ -32,7 +56,10 @@ async def getAllAdmins():
     }
 
 @router.get("/{username}")
-async def get_data_by_username(username: str):
+async def get_data_by_username(
+        username: str,
+        current_admin = Depends(get_current_admin)
+):
     result = AdminRepo.getDataByUsername(username)
 
     if not result:
@@ -49,16 +76,8 @@ async def get_data_by_username(username: str):
 # async def existsAdmin(username: str):
 #     return AdminRepo.exists(username)
 
-@router.patch("/{username}/password")
-async def updatePasswordAdmin(username: str, passwordHash: str):
-    pass # going to define service for this
-
-@router.put("/{username}")
-async def updateDataAdmin(username: str, data: dict):
-    pass # going to define service for this
-
 @router.delete("/{username}")
-async def delete_admin(username: str):
+async def delete_admin(username: str, current_admin = Depends(get_current_admin)):
     result = AdminRepo.deleteData(username)
     return{
         "success": True,
@@ -66,5 +85,5 @@ async def delete_admin(username: str):
     }
 
 @router.post("/admin")
-async def createAdmin(data : AdminResponse):
-    pass # going to define service for this
+async def createAdmin(data : AdminResponse, current_admin = Depends(get_current_admin)):
+    return AuthService.createAdmin(data)

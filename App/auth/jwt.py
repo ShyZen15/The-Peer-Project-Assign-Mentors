@@ -9,15 +9,15 @@ class JWT:
         payload = data.copy()
 
         expire = datetime.now(timezone.utc) + timedelta(
-            minutes=int(settings.expireTime)
+            minutes=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         )
 
         payload.update({"exp": expire})
 
         token = jwt.encode(
             payload,
-            settings.secret_key,
-            algorithm=settings.algo
+            settings.SECRET_KEY,
+            algorithm=settings.ALGORITHM
         )
 
         return token
@@ -26,7 +26,7 @@ class JWT:
     def verify_access_token(token: str) -> dict:
         payload = jwt.decode(
             token,
-            settings.secret_key,
-            algorithms=[settings.algo]
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
         )
         return payload

@@ -115,3 +115,16 @@ class MenteeRepo():
             .eq("email", email)
             .execute()
         ).data
+    
+    @staticmethod
+    def updateVerificationStatus(
+    discord_id: str,
+    is_verified: bool
+    ):
+        return (
+            supabase
+            .table("Mentees")
+            .update({"isVerified": is_verified})
+            .eq("discord_id", discord_id)
+            .execute()
+    )

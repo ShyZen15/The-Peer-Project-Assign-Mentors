@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from App.schemas.mentor import MentorRegistration
 from App.repository.MentorRepo import MentorRepo
 from postgrest.exceptions import APIError
+from App.auth.dependencies import get_current_admin
 
 router = APIRouter(
     prefix="/mentor",
@@ -33,17 +34,26 @@ async def register_mentor(
             status_code=500,
             detail="Database error."
         )
+    
+@router.get("/count")
+async def getTotal(current_admin = Depends(get_current_admin)):
+    print("Endpoint reached")
+    return MentorRepo.getCount()
 
-@router.get("/")
-async def get_mentor_all():
+@router.get("/mentorAll")
+async def get_mentor_all(current_admin = Depends(get_current_admin)):
+    print("Reached endpoint")
+    print("Before repo")
     result = MentorRepo.getAll()
+    print("After repo")
+    print(result)
     return {
         "success": True,
         "mentor": result
     }
 
 @router.get("/{discord_id}")
-async def get_mentor_id(discord_id: str):
+async def get_mentor_id(discord_id: str, current_admin = Depends(get_current_admin)):
     result = MentorRepo.getDataByID(discord_id)
 
     if not result:
@@ -56,50 +66,39 @@ async def get_mentor_id(discord_id: str):
         "mentor": result
     }
 
-@router.put("/{discord_id}")
-async def update_mentor_more(discord_id: str, data:dict):
-    existing = MentorRepo.getDataByID(discord_id)
-
-    if not existing:
-        raise HTTPException(
-            status_code=404,
-            detail="Mentor not Found."
-        )
-    
-    try:
-        result = MentorRepo.updateData(discord_id, data)
-        return{
-            "success": True,
-            "mentor": result.data
-        }
-    except APIError as e:
-        if "discord_id" in str(e):
-            raise HTTPException(
-                status_code=409,
-                detail="Discord ID already exists"
-            )
-        raise HTTPException(
-            status_code=500,
-            detail="Database error."
-        )
         
 
 @router.put("/{discord_id}")
-async def update_mentor_one_field(discord_id: str, data, field:str):
+async def update_mentor_one_field(discord_id: str, data, field:str, current_admin = Depends(get_current_admin)):
     result = MentorRepo.updateDataField(discord_id, data, field)
     return{
         "success": True,
         "mentor": result.data
     }
 
-@router.delete("/{discord_id}")
-async def delete_mentor_id(discord_id: str):
+@router.patch("/{discord_id}/verify")
+async def verify_mentor(
+    discord_id: str,
+    is_verified: bool,
+    current_admin = Depends(get_current_admin)
+):
+    result = MentorRepo.updateVerificationStatus(
+        discord_id,
+        is_verified
+    )
+
+    return {
+        "success": True,
+        "message": f"Verification status updated to {is_verified}",
+        "mentor": result.data
+    }
+
+@router.delete("/{discord_id}/delete")
+async def delete_mentor_id(discord_id: str, current_admin = Depends(get_current_admin)):
     result = MentorRepo.deleteData(discord_id)
     return{
         "success": True,
         "mentor": result.data
     }
 
-@router.get("/")
-async def getTotal():
-    return MentorRepo.getCount()
+

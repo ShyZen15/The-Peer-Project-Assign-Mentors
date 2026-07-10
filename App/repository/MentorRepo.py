@@ -28,7 +28,7 @@ class MentorRepo():
             supabase
             .table("Mentors")
             .select("*")
-            .eq("id", id)
+            .eq("discord_id", id)
             .execute()
         ).data
 
@@ -38,7 +38,7 @@ class MentorRepo():
             supabase
             .table("Mentors")
             .update(data)
-            .eq("id", id)
+            .eq("discord_id", id)
             .execute()
         )
 
@@ -48,7 +48,7 @@ class MentorRepo():
             supabase
             .table("Mentors")
             .update({field: data})
-            .eq("id", id)
+            .eq("discord_id", id)
             .execute()
         )
 
@@ -56,9 +56,9 @@ class MentorRepo():
     def deleteData(id: str):
         return (
             supabase
-            .table("mentors")
+            .table("Mentors")
             .delete()
-            .eq("id", id)
+            .eq("discord_id", id)
             .execute()
         )
 
@@ -113,3 +113,16 @@ class MentorRepo():
             .eq("email", email)
             .execute()
         ).data
+    
+    @staticmethod
+    def updateVerificationStatus(
+        discord_id: str,
+        is_verified: bool
+    ):
+        return (
+            supabase
+            .table("Mentors")
+            .update({"isVerified": is_verified})
+            .eq("discord_id", discord_id)
+            .execute()
+    )
